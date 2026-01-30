@@ -128,7 +128,7 @@ class Antibio_Dataset(DatasetFolder):
         for file_name in file_names:
             if file_name.endswith(valid_ext):
                 instances.append(file_name)
-                m = re.match(r'([A-Z]+)_(\d+)_([A-Z]+)',  os.path.basename(file_name))
+                m = re.match(r'([A-Z]+)-(\d+)-([A-Z]+)',  os.path.basename(file_name))
                 if m:
                     label = df_label[df_label['sample_name'] == f"{m.group(1)}{m.group(2)}"][label_col].tolist()
                     labels.append(label[0])
