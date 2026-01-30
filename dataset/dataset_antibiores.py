@@ -92,16 +92,27 @@ class Antibio_Dataset(DatasetFolder):
         self.root = root
         self.instances, self.labels , self.sample_name= self.make_dataset('.pkl',label_path,label_col)
         self.loader = pkl_loader
-        if augment:
-            self.transform_img = transforms.Compose([transforms.Resize((256,256)),
-                                                 transforms.Normalize((0.246), (0.210)),
-                                                 Random_shift_rt(1,0,3),
-                                                 Random_int_noise(1, 2)])
+        self.type = type
+        if self.type == 'ms1':
+            if augment:
+                self.transform_img = transforms.Compose([transforms.Resize((256,256)),
+                                                     transforms.Normalize((0.246), (0.210)),
+                                                     Random_shift_rt(1,0,3),
+                                                     Random_int_noise(1, 2)])
 
-        else :
-            self.transform_img = transforms.Compose([transforms.Resize((256,256)),
-                                                 transforms.Normalize((0.246), (0.210)),])
+            else :
+                self.transform_img = transforms.Compose([transforms.Resize((256,256)),
+                                                     transforms.Normalize((0.246), (0.210)),])
+        elif self.type == 'ms2':
+            if augment:#augment 3D a définir
+                self.transform_img = transforms.Compose([transforms.Resize((101,256, 256)),
+                                                         transforms.Normalize((0.246), (0.210)),#TBD
+                                                         Random_shift_rt(1, 0, 3),
+                                                         Random_int_noise(1, 2)])
 
+            else:
+                self.transform_img = transforms.Compose([transforms.Resize((101, 256, 256)),
+                                                         transforms.Normalize((0.246), (0.210)), ])#TBD
         self.label_col = label_col
         self.classes = list(set(self.labels))
         self.classes.sort()
@@ -112,10 +123,15 @@ class Antibio_Dataset(DatasetFolder):
         path = self.instances[index]
         name = self.sample_name[index]
         sample = self.loader(path)
+        if self.type == 'ms2':
+            sample = sample["image"]
+            tensor_list = [torch.Tensor(wind) for wind in sample]
+            sample = torch.cat(tensor_list, dim=0)
         if self.transform_img is not None:
             sample = self.transform_img(sample)
         label_id = self.classes.index(label)
         return sample, label_id, name
+
 
     def __len__(self):
         return len(self.instances)
@@ -130,10 +146,12 @@ class Antibio_Dataset(DatasetFolder):
                 instances.append(file_name)
                 m = re.match(r'([A-Z]+)-(\d+)-([A-Z]+)',  os.path.basename(file_name))
                 if m:
-                    print(m.group(1),m.group(2))
+                    print(f"{m.group(1)}{m.group(2)}")
                     label = df_label[df_label['sample_name'] == f"{m.group(1)}{m.group(2)}"][label_col].tolist()
                     labels.append(label[0])
                     sample_name.append(f"{m.group(1)}-{m.group(2)}-{m.group(3)}")
                 else:
                     raise ValueError(f"Label not found for: {file_name}")
         return instances,labels,sample_name
+
+df = Antibio_Dataset(root='../data/img_ms1/train_data',label_path='../data/antibiores_labels.csv',label_col='GEN (mic) cat',augment=False)
