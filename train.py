@@ -1,11 +1,10 @@
 import os
-
 import pandas as pd
 import torch
 from torch import nn, optim, cuda
 import wandb
 from dataset.dataset_antibiores import Antibio_Dataset
-from model import Classification_model_ms1
+from model import Classification_model_ms1, Classification_model_ms2
 import torch.utils.data
 from torch.amp import autocast
 
@@ -32,15 +31,14 @@ def train(model, data_train, optimizer, loss_function, epoch):
     acc = 0.
 
     for im, label, _ in data_train:
-        with autocast(device_type=device_type, dtype=torch.bfloat16):
-            label = label.long()
-            im = im.float().to(device)
-            label = label.to(device)
-            pred_logits = model(im)
-            pred_class = torch.argmax(pred_logits,dim=1)
-            acc += (pred_class==label).sum().item()
-            loss = loss_function(pred_logits,label)
-            losses += loss.item()
+        label = label.long()
+        im = im.float().to(device)
+        label = label.to(device)
+        pred_logits = model(im)
+        pred_class = torch.argmax(pred_logits,dim=1)
+        acc += (pred_class==label).sum().item()
+        loss = loss_function(pred_logits,label)
+        losses += loss.item()
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -54,25 +52,22 @@ def test(model, data_test, loss_function, epoch):
     model.eval()
     if cuda.is_available():
         device = torch.device('cuda')
-        device_type = 'cuda'
     else:
         device = torch.device('cpu')
-        device_type = 'cpu'
     losses = 0.
     acc = 0.
     for param in model.parameters():
         param.requires_grad = False
 
     for im, label, _ in data_test:
-        with autocast(device_type=device_type, dtype=torch.bfloat16):
-            label = label.float().long()
-            im = im.float().to(device)
-            label = label.to(device)
-            pred_logits = model(im)
-            pred_class = torch.argmax(pred_logits,dim=1)
-            acc += (pred_class==label).sum().item()
-            loss = loss_function(pred_logits,label)
-            losses += loss.item()
+        label = label.float().long()
+        im = im.float().to(device)
+        label = label.to(device)
+        pred_logits = model(im)
+        pred_class = torch.argmax(pred_logits,dim=1)
+        acc += (pred_class==label).sum().item()
+        loss = loss_function(pred_logits,label)
+        losses += loss.item()
     losses = losses/len(data_test.dataset)
     acc = acc/len(data_test.dataset)
     print('Val epoch {}, loss : {:.3f} acc : {:.3f}'.format(epoch,losses,acc))
@@ -86,20 +81,18 @@ def make_prediction(model, data_test):
     else:
         device = torch.device('cpu')
         device_type = 'cpu'
-    losses = 0.
-    acc = 0.
+
     for param in model.parameters():
         param.requires_grad = False
     y_true = []
     y_pred = []
     name = []
     for im, label, sample in data_test:
-        with autocast(device_type=device_type, dtype=torch.bfloat16):
-            label = label.float().long()
-            im = im.float().to(device)
-            label = label.to(device)
-            pred_logits = model(im)
-            pred_class = torch.argmax(pred_logits,dim=1)
+        label = label.float().long()
+        im = im.float().to(device)
+        label = label.to(device)
+        pred_logits = model(im)
+        pred_class = torch.argmax(pred_logits,dim=1)
         y_true.extend(label.long().tolist())
         y_pred.extend(pred_class.tolist())
         name.extend(sample)
@@ -113,13 +106,18 @@ def run(args):
     data_train = Antibio_Dataset(root=args.dataset_train_dir,label_path=args.label_path,label_col=args.label_col,augment=False)
     data_val = Antibio_Dataset(root=args.dataset_val_dir,label_path=args.label_path,label_col=args.label_col)
     data_test = Antibio_Dataset(root=args.dataset_test_dir,label_path=args.label_path,label_col=args.label_col)
+
     data_loader_train = torch.utils.data.DataLoader(data_train, batch_size=args.batch_size)
     data_loader_val = torch.utils.data.DataLoader(data_val, batch_size=args.batch_size)
     data_loader_test =  torch.utils.data.DataLoader(data_test, batch_size=args.batch_size)
 
     #load model
-
-    model = Classification_model_ms1(backbone = args.backbone, n_class=2)
+    if args.model_type == 'ms1':
+        model = Classification_model_ms1(backbone = args.backbone, n_class=2)
+    elif args.model_type == 'ms2':
+        model = Classification_model_ms2(backbone = args.backbone, n_class=2, n_window=args.n_window,n_feature=args.n_feature)
+    else:
+        raise NotImplementedError
 
     #load weight
     if args.pretrain_path is not None :
