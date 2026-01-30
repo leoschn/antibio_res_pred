@@ -154,4 +154,4 @@ class Antibio_Dataset(DatasetFolder):
                     raise ValueError(f"Label not found for: {file_name}")
         return instances,labels,sample_name
 
-df = Antibio_Dataset(root='../data/img_ms1/train_data',label_path='../data/antibiores_labels.csv',label_col='GEN (mic) cat',augment=False)
+df = Antibio_Dataset(root='./data/img_ms1/train_data',label_path='./data/antibiores_labels.csv',label_col='GEN (mic) cat',augment=False)
