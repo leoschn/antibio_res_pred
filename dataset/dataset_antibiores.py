@@ -143,6 +143,7 @@ class Antibio_Dataset(DatasetFolder):
         file_names = glob.glob(os.path.join(self.root, '*'))
         for file_name in file_names:
             if file_name.endswith(valid_ext):
+                print(file_name)
                 instances.append(file_name)
                 m = re.match(r'([A-Z]+)-(\d+)-([A-Z]+)',  os.path.basename(file_name))
                 if m:
