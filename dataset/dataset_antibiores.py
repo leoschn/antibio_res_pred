@@ -130,6 +130,7 @@ class Antibio_Dataset(DatasetFolder):
                 instances.append(file_name)
                 m = re.match(r'([A-Z]+)-(\d+)-([A-Z]+)',  os.path.basename(file_name))
                 if m:
+                    print(m.group(1),m.group(2))
                     label = df_label[df_label['sample_name'] == f"{m.group(1)}{m.group(2)}"][label_col].tolist()
                     labels.append(label[0])
                     sample_name.append(f"{m.group(1)}-{m.group(2)}-{m.group(3)}")
