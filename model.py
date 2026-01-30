@@ -1,3 +1,5 @@
+from pyexpat import features
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -271,5 +273,26 @@ class Classification_model_ms1(nn.Module):
 
 
     def forward(self, input):
-        return self.im_encoder(input)
+        return self.im_encoder.forward(input)
+
+class Classification_model_ms2(nn.Module):
+
+    def __init__(self, backbone, n_class,n_window,n_feature, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.n_class = n_class
+        self.n_feature = n_feature
+        if backbone =='ResNet18':
+            self.feature_extractor = resnet18(self.n_feature, in_channels=1)
+        self.classifier = nn.Linear(in_features=self.n_feature*n_window, out_features=self.n_class)
+
+
+    def forward(self, x):
+        features=[]
+        for i in range(self.num_channels):
+            xi = x[:, i:i + 1, :, :]  # (B, 1, H, W)
+            fi = self.feature_extractor.forward(xi)
+            features.append(fi)
+
+        fused = torch.cat(features, dim=1)  # (B, C*F)
+        return self.classifier(fused)
 

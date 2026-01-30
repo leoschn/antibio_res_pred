@@ -1,11 +1,13 @@
 import os
 
+import pandas as pd
 import torch
-from torch import nn, optim
+from torch import nn, optim, cuda
 import wandb
 from dataset.dataset_antibiores import Antibio_Dataset
 from model import Classification_model_ms1
 import torch.utils.data
+from torch.amp import autocast
 
 def save_model(model, path):
     print('Model saved')
@@ -17,20 +19,28 @@ def load_model(model, path):
 
 def train(model, data_train, optimizer, loss_function, epoch):
     model.train()
+    for param in model.parameters():
+        param.requires_grad = True
 
+    if cuda.is_available():
+        device = torch.device('cuda')
+        device_type = 'cuda'
+    else:
+        device = torch.device('cpu')
+        device_type = 'cpu'
     losses = 0.
     acc = 0.
 
-    for im, label in data_train:
-        label = label.long()
-        if torch.cuda.is_available():
-            im = im.cuda()
-            label = label.cuda()
-        pred_logits = model.forward(im)
-        pred_class = torch.argmax(pred_logits,dim=1)
-        acc += (pred_class==label).sum().item()
-        loss = loss_function(pred_logits,label)
-        losses += loss.item()
+    for im, label, _ in data_train:
+        with autocast(device_type=device_type, dtype=torch.bfloat16):
+            label = label.long()
+            im = im.float().to(device)
+            label = label.to(device)
+            pred_logits = model(im)
+            pred_class = torch.argmax(pred_logits,dim=1)
+            acc += (pred_class==label).sum().item()
+            loss = loss_function(pred_logits,label)
+            losses += loss.item()
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -42,33 +52,67 @@ def train(model, data_train, optimizer, loss_function, epoch):
 
 def test(model, data_test, loss_function, epoch):
     model.eval()
+    if cuda.is_available():
+        device = torch.device('cuda')
+        device_type = 'cuda'
+    else:
+        device = torch.device('cpu')
+        device_type = 'cpu'
     losses = 0.
     acc = 0.
     for param in model.parameters():
         param.requires_grad = False
 
-    for im, label in data_test:
-        label = label.long()
-        if torch.cuda.is_available():
-            im = im.cuda()
-            label = label.cuda()
-        pred_logits = model.forward(im)
-        pred_class = torch.argmax(pred_logits,dim=1)
-        acc += (pred_class==label).sum().item()
-        loss = loss_function(pred_logits,label)
-        losses += loss.item()
+    for im, label, _ in data_test:
+        with autocast(device_type=device_type, dtype=torch.bfloat16):
+            label = label.float().long()
+            im = im.float().to(device)
+            label = label.to(device)
+            pred_logits = model(im)
+            pred_class = torch.argmax(pred_logits,dim=1)
+            acc += (pred_class==label).sum().item()
+            loss = loss_function(pred_logits,label)
+            losses += loss.item()
     losses = losses/len(data_test.dataset)
     acc = acc/len(data_test.dataset)
-    print('Test epoch {}, loss : {:.3f} acc : {:.3f}'.format(epoch,losses,acc))
+    print('Val epoch {}, loss : {:.3f} acc : {:.3f}'.format(epoch,losses,acc))
     return losses,acc
+
+def make_prediction(model, data_test):
+    model.eval()
+    if cuda.is_available():
+        device = torch.device('cuda')
+        device_type = 'cuda'
+    else:
+        device = torch.device('cpu')
+        device_type = 'cpu'
+    losses = 0.
+    acc = 0.
+    for param in model.parameters():
+        param.requires_grad = False
+    y_true = []
+    y_pred = []
+    name = []
+    for im, label, sample in data_test:
+        with autocast(device_type=device_type, dtype=torch.bfloat16):
+            label = label.float().long()
+            im = im.float().to(device)
+            label = label.to(device)
+            pred_logits = model(im)
+            pred_class = torch.argmax(pred_logits,dim=1)
+        y_true.extend(label.long().tolist())
+        y_pred.extend(pred_class.tolist())
+        name.extend(sample)
+    df = pd.DataFrame({'sample name':name,'y_true':y_true,'y_pred':y_pred})
+    return df
 
 
 def run(args):
     #load data
 
-    data_train = Antibio_Dataset(root=args.data_train,label_path=args.label_path,label_col=args.label_col)
-    data_val = Antibio_Dataset(root=args.data_val,label_path=args.label_path,label_col=args.label_col)
-    data_test = Antibio_Dataset(root=args.data_test,label_path=args.label_path,label_col=args.label_col)
+    data_train = Antibio_Dataset(root=args.dataset_train_dir,label_path=args.label_path,label_col=args.label_col,augment=False)
+    data_val = Antibio_Dataset(root=args.dataset_val_dir,label_path=args.label_path,label_col=args.label_col)
+    data_test = Antibio_Dataset(root=args.dataset_test_dir,label_path=args.label_path,label_col=args.label_col)
     data_loader_train = torch.utils.data.DataLoader(data_train, batch_size=args.batch_size)
     data_loader_val = torch.utils.data.DataLoader(data_val, batch_size=args.batch_size)
     data_loader_test =  torch.utils.data.DataLoader(data_test, batch_size=args.batch_size)
@@ -77,7 +121,6 @@ def run(args):
 
     model = Classification_model_ms1(backbone = args.backbone, n_class=2)
 
-    model = model.to(torch.float32)
     #load weight
     if args.pretrain_path is not None :
         load_model(model,args.pretrain_path)
@@ -111,13 +154,11 @@ def run(args):
                 best_acc = acc
     load_model(model,args.save_path)
     loss, acc = test(model, data_loader_test, loss_function, e)
+    df = make_prediction(model, data_loader_test)
+    df.to_csv(args.out_path,index=False)
     print('Test accuracy : {:.3f}'.format(best_acc))
     if args.wandb :
         wandb.log({'loss_test':loss,'acc_test':acc})
 
     if args.wandb :
         wandb.finish()
-    # plot and save training figs
-    #load and evaluate best model
-    # load_model(model, args.save_path)
-    # os.remove(args.save_path)

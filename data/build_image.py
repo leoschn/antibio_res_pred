@@ -1,5 +1,6 @@
 import glob
 import os
+import pickle
 import pickle as pkl
 import numpy as np
 from matplotlib import image as mpimg
@@ -44,61 +45,140 @@ def build_image_ms1_wiff(path, bin_mz):
 
     return im
 
-def build_image_ms2_wiff(path, bin_mz):
-    # load raw data
-    rawFile = WiffFileReader(path)
+
+def build_image_ms2_mzml(path_mzml, out_path=None, bin_mz=1.0):
+
+
+    # ----------------------------
+    # 1. Load mzML
+    # ----------------------------
+    run = pymzml.run.Reader(path_mzml)
+
+    # ----------------------------
+    # 2. Identify MS1 range and DIA windows
+    # ----------------------------
+    dia_window_set = set()
     max_cycle = 0
+    ms1_start_mz = None
+    ms1_end_mz = None
 
-    start_rt = rawFile.GetStartTime()
-    end_rt = rawFile.GetEndTime()
-    span_rt = end_rt - start_rt
-
-    first_scan, last_scan = rawFile.GetFirstSpectrumNumber(), rawFile.GetLastSpectrumNumber()
-    list_precursor_mass_center = []
-    for scanNumber in range(first_scan, last_scan):
-        if rawFile.GetMSOrderForScanNum(scanNumber) == 1:
-            ms1_start_mz = rawFile.source.ScanInfos[scanNumber].LowMz
-            ms1_end_mz = rawFile.source.ScanInfos[scanNumber].HighMz
+    for spec in run:
+        if spec.ms_level == 1:
+            mzs = spec.mz
+            if mzs is not None and len(mzs) > 0:
+                if ms1_start_mz is None or min(mzs) < ms1_start_mz:
+                    ms1_start_mz = min(mzs)
+                if ms1_end_mz is None or max(mzs) > ms1_end_mz:
+                    ms1_end_mz = max(mzs)
             max_cycle += 1
-        elif rawFile.GetPrecursorMassForScanNum(scanNumber) not in list_precursor_mass_center:
-            list_precursor_mass_center.append(rawFile.GetPrecursorMassForScanNum(scanNumber))
+        elif spec.ms_level == 2:
+            # get isolation window from mzML
+            target = spec['isolation window target m/z']
+            lo = spec['isolation window lower offset']
+            hi = spec['isolation window upper offset']
+            dia_window_set.add((target - lo, target + hi))
 
-    print('start', ms1_start_mz, 'end', ms1_end_mz)
-    total_ms1_mz = ms1_end_mz - ms1_start_mz
+    dia_windows = sorted(dia_window_set, key=lambda x: (x[0], x[1]))
+    window_to_index = {win: i + 1 for i, win in enumerate(dia_windows)}  # MS1 = 0
 
-    n_bin_ms1 = int(total_ms1_mz // bin_mz)
-    size_bin_ms1 = total_ms1_mz / n_bin_ms1
-    list_img = [np.zeros([max_cycle, n_bin_ms1 + 1]) for i in range(len(list_precursor_mass_center) + 1)]
-    cycle = 0
-    dict_int = {}
-    ind = 1
+    start_mz = ms1_start_mz
+    end_mz = ms1_end_mz
+    total_mz = end_mz - start_mz
+    n_bin = int(total_mz // bin_mz)
+    size_bin = total_mz / n_bin
 
-    for mass in list_precursor_mass_center:
-        dict_int[mass] = ind
-        ind += 1
+    # ----------------------------
+    # 3. Allocate images
+    # ----------------------------
+    list_img = [
+        np.zeros((max_cycle, n_bin + 1), dtype=np.float32)
+        for _ in range(len(dia_windows) + 1)
+    ]
 
-    for scanNumber in range(first_scan, last_scan):
-        masses, intensities = rawFile.GetCentroidMassListFromScanNum(scanNumber)
-        line = np.zeros(n_bin_ms1 + 1)
-        if len(masses) > 0:
-            for k in range(len(masses)):
-                line[int((masses[k] - ms1_start_mz) // size_bin_ms1)] += intensities[k]
-        if rawFile.GetMSOrderForScanNum(scanNumber) == 1:
-            list_img[0][cycle, :] = np.maximum(np.log10(line), np.zeros(n_bin_ms1 + 1))
+    # ----------------------------
+    # 4. Fill images
+    # ----------------------------
+    cycle = -1  # incremented on MS1
+
+    for spec in run:
+        mzs = spec.mz
+        ints = spec.i
+        if mzs is None or len(mzs) == 0:
+            continue
+
+        if spec.ms_level == 1:
+            cycle += 1
+        if cycle < 0:
+            continue
+
+        # binning
+        masses = np.array(mzs)
+        intensities = np.array(ints)
+        bins = ((masses - start_mz) / size_bin).astype(int)
+        valid = (bins >= 0) & (bins <= n_bin)
+        line = np.zeros(n_bin + 1, dtype=np.float32)
+        np.add.at(line, bins[valid], intensities[valid])
+        line = np.log10(line + 1)  # safe log
+
+        if spec.ms_level == 1:
+            list_img[0][cycle, :] = line
         else:
-            ind = dict_int[rawFile.GetPrecursorMassForScanNum(scanNumber)]
-            list_img[ind][cycle, :] = np.maximum(np.log10(line), np.zeros(n_bin_ms1 + 1))
-            if rawFile.GetPrecursorMassForScanNum(scanNumber) == list_precursor_mass_center[-1]:
-                cycle += 1
+            target = spec['isolation window target m/z']
+            lo = spec['isolation window lower offset']
+            hi = spec['isolation window upper offset']
+            key = (target - lo, target + hi)
+            ind = window_to_index[key]
+            list_img[ind][cycle, :] = line
 
-    meta_data = {'n_bin_ms1': n_bin_ms1, 'size_bin_ms1': size_bin_ms1, 'ms1_start_mz': ms1_start_mz,
-                 'ms1_end_mz': ms1_end_mz, 'max_cycle': max_cycle,
-                 'list_precursor_mass_center': list_precursor_mass_center,
-                 'total_ms1_mz': total_ms1_mz, 'start_rt': start_rt, 'end_rt': end_rt, 'span_rt': span_rt}
+    # ----------------------------
+    # 5. Metadata
+    # ----------------------------
+    # get first and last MS1 scans
+    start_rt = None
+    end_rt = None
+    for spec in run:
+        if spec.ms_level == 1:
+            rt = spec.scan_time[0]  # get numeric RT
+            if start_rt is None:
+                start_rt = rt
+            end_rt = rt
+
+
+    meta_data = {
+        'n_bin': n_bin,
+        'size_bin': size_bin,
+        'start_mz': start_mz,
+        'end_mz': end_mz,
+        'max_cycle': max_cycle,
+        'dia_windows': window_to_index,
+        'span_rt': end_rt - start_rt,
+        'start_rt': start_rt,
+        'end_rt': end_rt,
+    }
 
     data_out = {'image': list_img, 'metadata': meta_data}
 
+    if out_path is not None:
+        with open(out_path, 'wb') as f:
+            print('saving images to', out_path)
+            pickle.dump(data_out, f)
+
     return data_out
+
+
+def build_dataset_ms2(dir_path):
+    for filename in glob.glob(os.path.join(dir_path,'*.mzML')):
+        print(filename)
+
+
+        name = transform(os.path.basename(filename))
+        os.makedirs('img_ms1',exist_ok=True)
+        save_name = os.path.join('img_ms1', name+'.pkl')
+        if not os.path.exists(save_name):
+            img = build_image_ms2_mzml(filename, 1)
+            with open(save_name,'wb') as file:
+                pkl.dump(img,file)
+
 
 def build_dataset_ms1(dir_path):
     for filename in glob.glob(os.path.join(dir_path,'*.wiff')):
@@ -114,4 +194,6 @@ def build_dataset_ms1(dir_path):
                 pkl.dump(img,file)
 
 if __name__ == '__main__':
-    build_dataset_ms1('wiff_data')
+    # build_dataset_ms1('wiff_data')
+    data = build_image_ms2_mzml('wiff_data/CITAMA-5-AER-d200.wiff',bin_mz=1)
+
