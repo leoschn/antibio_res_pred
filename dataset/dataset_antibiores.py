@@ -82,7 +82,7 @@ class To_float:
 
 def pkl_loader(path):
     with open(path, 'rb') as f:
-        sample = torch.from_numpy(pkl.load(f))
+        sample = torch.from_numpy(pkl.load(f)['image'])
     sample = sample.unsqueeze(0)
     return sample
 
