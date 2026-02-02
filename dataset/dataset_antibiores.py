@@ -144,15 +144,18 @@ class Antibio_Dataset(DatasetFolder):
         for file_name in file_names:
             if file_name.endswith(valid_ext):
                 print(file_name)
-                instances.append(file_name)
                 m = re.match(r'([A-Z]+)-(\d+)-([A-Z]+)',  os.path.basename(file_name))
                 if m:
                     print(f"{m.group(1)}{m.group(2)}")
                     label = df_label[df_label['sample_name'] == f"{m.group(1)}{m.group(2)}"][label_col].tolist()
-                    labels.append(label[0])
-                    sample_name.append(f"{m.group(1)}-{m.group(2)}-{m.group(3)}")
+                    if len(label) > 0:
+                        instances.append(file_name)
+                        labels.append(label[0])
+                        sample_name.append(f"{m.group(1)}-{m.group(2)}-{m.group(3)}")
                 else:
                     raise ValueError(f"Label not found for: {file_name}")
+        assert(len(instances)==len(labels))
+        print(len(instances), ' image detected. \n Dataset loading: done')
         return instances,labels,sample_name
 
 df = Antibio_Dataset(root='./data/img_ms1/train_data',label_path='./data/antibiores_labels.csv',label_col='GEN (mic) cat',augment=False)
