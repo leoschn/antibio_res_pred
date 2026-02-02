@@ -18,6 +18,7 @@ def load_args():
     parser.add_argument('--label_col', type=str, default='GEN (mic) cat')
     parser.add_argument('--pretrain_path', type=str, default=None)
     parser.add_argument('--n_window', type=int, default=101)
+    parser.add_argument('--n_feature', type=int, default=4)
     parser.add_argument('--wandb', type=str, default=None)
     parser.add_argument('--model_type', type=str, default='ms2')
     args = parser.parse_args()
