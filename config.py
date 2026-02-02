@@ -14,7 +14,7 @@ def load_args():
     parser.add_argument('--dataset_test_dir', type=str, default='/lustre/fsn1/projects/rech/bun/ucg81ws/dataset/img_test')
     parser.add_argument('--save_path', type=str, default='output/best_model.pt')
     parser.add_argument('--out_path', type=str, default='output/output.csv')
-    parser.add_argument('--label_path', type=str, default='data/antibiores_labels.csv')
+    parser.add_argument('--label_path', type=str, default='/lustre/fswork/projects/rech/bun/ucg81ws/these/antibio_res_pred/data/antibiores_labels.csv')
     parser.add_argument('--label_col', type=str, default='GEN (mic) cat')
     parser.add_argument('--pretrain_path', type=str, default=None)
     parser.add_argument('--wandb', type=str, default=None)
