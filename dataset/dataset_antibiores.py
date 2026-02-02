@@ -87,11 +87,11 @@ def pkl_loader(path):
 
 
 class Antibio_Dataset(DatasetFolder):
-    def __init__(self, root,label_path,label_col,augment=False):
+    def __init__(self, root,label_path,label_col,augment=False, model_type=None):
         self.root = root
         self.instances, self.labels , self.sample_name= self.make_dataset('.pkl',label_path,label_col)
         self.loader = pkl_loader
-        self.type = type
+        self.type = model_type
         if self.type == 'ms1':
             if augment:
                 self.transform_img = transforms.Compose([transforms.Resize((256,256)),
@@ -112,6 +112,8 @@ class Antibio_Dataset(DatasetFolder):
             else:
                 self.transform_img = transforms.Compose([transforms.Resize((101, 256, 256)),
                                                          transforms.Normalize((0.246), (0.210)), ])#TBD
+        else :
+            self.transform_img = None
         self.label_col = label_col
         self.classes = list(set(self.labels))
         self.classes.sort()
