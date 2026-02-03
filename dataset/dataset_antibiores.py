@@ -124,10 +124,13 @@ class Antibio_Dataset(DatasetFolder):
         path = self.instances[index]
         name = self.sample_name[index]
         sample = self.loader(path)
+        print(sample)
         if self.type == 'ms2':
             sample = sample["image"]
             tensor_list = [torch.Tensor(wind) for wind in sample]
+            print(len(tensor_list))
             sample = torch.cat(tensor_list, dim=0)
+            print(sample.shape)
         if self.transform_img is not None:
             sample = self.transform_img(sample)
         label_id = self.classes.index(label)
