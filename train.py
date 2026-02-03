@@ -103,9 +103,9 @@ def make_prediction(model, data_test):
 def run(args):
     #load data
 
-    data_train = Antibio_Dataset(root=args.dataset_train_dir,label_path=args.label_path,label_col=args.label_col,augment=False)
-    data_val = Antibio_Dataset(root=args.dataset_val_dir,label_path=args.label_path,label_col=args.label_col)
-    data_test = Antibio_Dataset(root=args.dataset_test_dir,label_path=args.label_path,label_col=args.label_col)
+    data_train = Antibio_Dataset(root=args.dataset_train_dir,label_path=args.label_path,label_col=args.label_col,augment=False, model_type=args.model_type)
+    data_val = Antibio_Dataset(root=args.dataset_val_dir,label_path=args.label_path,label_col=args.label_col, model_type=args.model_type)
+    data_test = Antibio_Dataset(root=args.dataset_test_dir,label_path=args.label_path,label_col=args.label_col, model_type=args.model_type)
 
     data_loader_train = torch.utils.data.DataLoader(data_train, batch_size=args.batch_size)
     data_loader_val = torch.utils.data.DataLoader(data_val, batch_size=args.batch_size)
@@ -115,7 +115,7 @@ def run(args):
     if args.model_type == 'ms1':
         model = Classification_model_ms1(backbone = args.backbone, n_class=2)
     elif args.model_type == 'ms2':
-        model = Classification_model_ms2(backbone = args.backbone, n_class=2, n_window=args.n_window,n_feature=args.n_feature,model_type=args.model_type)
+        model = Classification_model_ms2(backbone = args.backbone, n_class=2, n_window=args.n_window,n_feature=args.n_feature)
     else:
         raise NotImplementedError
 

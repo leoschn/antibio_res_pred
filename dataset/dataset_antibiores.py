@@ -156,5 +156,3 @@ class Antibio_Dataset(DatasetFolder):
         assert(len(instances)==len(labels))
         print(len(instances), ' image detected. \n Dataset loading: done')
         return instances,labels,sample_name
-
-df = Antibio_Dataset(root='./data/img_ms1/train_data',label_path='./data/antibiores_labels.csv',label_col='GEN (mic) cat',augment=False)
