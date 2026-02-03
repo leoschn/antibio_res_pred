@@ -104,13 +104,13 @@ class Antibio_Dataset(DatasetFolder):
                                                      transforms.Normalize((0.246), (0.210)),])
         elif self.type == 'ms2':
             if augment:#augment 3D a définir
-                self.transform_img = transforms.Compose([transforms.Resize((101,256, 256)),
+                self.transform_img = transforms.Compose([transforms.Resize((256, 256)),
                                                          transforms.Normalize((0.246), (0.210)),#TBD
                                                          Random_shift_rt(1, 0, 3),
                                                          Random_int_noise(1, 2)])
 
             else:
-                self.transform_img = transforms.Compose([transforms.Resize((101, 256, 256)),
+                self.transform_img = transforms.Compose([transforms.Resize((256, 256)),
                                                          transforms.Normalize((0.246), (0.210)), ])#TBD
         else :
             self.transform_img = None
