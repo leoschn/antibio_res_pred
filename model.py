@@ -288,7 +288,7 @@ class Classification_model_ms2(nn.Module):
 
     def forward(self, x):
         features=[]
-        for i in range(self.num_channels):
+        for i in range(self.n_window):
             xi = x[:, i:i + 1, :, :]  # (B, 1, H, W)
             fi = self.feature_extractor.forward(xi)
             features.append(fi)
