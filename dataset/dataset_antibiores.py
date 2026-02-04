@@ -129,7 +129,7 @@ class Antibio_Dataset(DatasetFolder):
             sample = sample["image"]
             tensor_list = [torch.Tensor(wind) for wind in sample]
             print(len(tensor_list))
-            sample = torch.cat(tensor_list, dim=0)
+            sample = torch.stack(tensor_list, dim=0)
             print(sample.shape)
         if self.transform_img is not None:
             sample = self.transform_img(sample)
