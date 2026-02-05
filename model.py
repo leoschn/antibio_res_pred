@@ -281,9 +281,10 @@ class Classification_model_ms2(nn.Module):
         super().__init__(*args, **kwargs)
         self.n_class = n_class
         self.n_feature = n_feature
+        self.n_window = n_window
         if backbone =='ResNet18':
             self.feature_extractor = resnet18(self.n_feature, in_channels=1)
-        self.classifier = nn.Linear(in_features=self.n_feature*n_window, out_features=self.n_class)
+        self.classifier = nn.Linear(in_features=self.n_feature*self.n_window, out_features=self.n_class)
 
 
     def forward(self, x):
