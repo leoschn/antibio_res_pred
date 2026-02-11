@@ -277,22 +277,32 @@ class Classification_model_ms1(nn.Module):
 
 class Classification_model_ms2(nn.Module):
 
-    def __init__(self, backbone, n_class,n_window,n_feature, *args, **kwargs):
+    def __init__(self, backbone, n_class,n_window,n_feature,weigth, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.n_class = n_class
         self.n_feature = n_feature
         self.n_window = n_window
-        if backbone =='ResNet18':
+        self.weigth = weigth
+        if backbone =='ResNet18' and self.weigth =='shared':
             self.feature_extractor = resnet18(self.n_feature, in_channels=1)
+        elif backbone =='ResNet18' and self.weigth =='multiple':
+            self.feature_extractor = [resnet18(self.n_feature, in_channels=1) for _ in range(self.n_window)]
         self.classifier = nn.Linear(in_features=self.n_feature*self.n_window, out_features=self.n_class)
 
 
     def forward(self, x):
         features=[]
-        for i in range(self.n_window):
-            xi = x[:, i:i + 1, :, :]  # (B, 1, H, W)
-            fi = self.feature_extractor.forward(xi)
-            features.append(fi)
+        if self.weigth == 'shared':
+            for i in range(self.n_window):
+                xi = x[:, i:i + 1, :, :]  # (B, 1, H, W)
+                fi = self.feature_extractor.forward(xi)
+                features.append(fi)
+        elif self.weigth == 'multiple':
+            for i in range(self.n_window):
+                xi = x[:, i:i + 1, :, :]  # (B, 1, H, W)
+                fi = self.feature_extractor[i].forward(xi)
+                features.append(fi)
+
 
         fused = torch.cat(features, dim=1)  # (B, C*F)
         return self.classifier(fused)

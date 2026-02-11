@@ -21,6 +21,7 @@ def load_args():
     parser.add_argument('--n_feature', type=int, default=4)
     parser.add_argument('--wandb', type=str, default=None)
     parser.add_argument('--model_type', type=str, default='ms2')
+    parser.add_argument('--weight', type=str, default='shared')
     args = parser.parse_args()
 
     return args
