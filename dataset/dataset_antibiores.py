@@ -94,24 +94,28 @@ class Antibio_Dataset(DatasetFolder):
         self.type = model_type
         if self.type == 'ms1':
             if augment:
-                self.transform_img = transforms.Compose([transforms.Resize((256,256)),
-                                                     transforms.Normalize((0.246), (0.210)),
-                                                     Random_shift_rt(1,0,3),
-                                                     Random_int_noise(1, 2)])
+                self.transform_img = transforms.Compose([transforms.ToTensor(),
+                                                         transforms.Resize((256,256)),
+                                                         transforms.Normalize((0.246), (0.210)),
+                                                         Random_shift_rt(1,0,3),
+                                                         Random_int_noise(1, 2)])
 
             else :
-                self.transform_img = transforms.Compose([transforms.Resize((256,256)),
-                                                     transforms.Normalize((0.246), (0.210)),])
+                self.transform_img = transforms.Compose([transforms.ToTensor(),
+                                                         transforms.Resize((256,256)),
+                                                         transforms.Normalize((0.246), (0.210)),])
         elif self.type == 'ms2':
             if augment:#augment 3D a définir
-                self.transform_img = transforms.Compose([transforms.Resize((256, 256)),
-                                                         #transforms.Normalize((0.246), (0.210)),#TBD
+                self.transform_img = transforms.Compose([transforms.ToTensor(),
+                                                         transforms.Resize((256, 256)),
+                                                         transforms.Normalize((1.0207), (1.0011)),
                                                          Random_shift_rt(1, 0, 3),
                                                          Random_int_noise(1, 2)])
 
             else:
-                self.transform_img = transforms.Compose([transforms.Resize((256, 256)),
-                                                         #transforms.Normalize((0.246), (0.210)),
+                self.transform_img = transforms.Compose([transforms.ToTensor(),
+                                                         transforms.Resize((256, 256)),
+                                                         transforms.Normalize((1.0207), (1.0011)),
                                                         ])#TBD
         else :
             self.transform_img = None
@@ -127,8 +131,7 @@ class Antibio_Dataset(DatasetFolder):
         sample = self.loader(path)
         if self.type == 'ms2':
             sample = sample["image"]
-            tensor_list = [torch.Tensor(wind) for wind in sample]
-            sample = torch.stack(tensor_list, dim=0)
+            sample = np.stack(sample, axis=0)
         if self.transform_img is not None:
             sample = self.transform_img(sample)
         label_id = self.classes.index(label)
