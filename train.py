@@ -115,7 +115,7 @@ def run(args):
     if args.model_type == 'ms1':
         model = Classification_model_ms1(backbone = args.backbone, n_class=2)
     elif args.model_type == 'ms2':
-        model = Classification_model_ms2(backbone = args.backbone, n_class=2, n_window=args.n_window,n_feature=args.n_feature,weigth=args.weigth)
+        model = Classification_model_ms2(backbone = args.backbone, n_class=2, n_window=args.n_window,n_feature=args.n_feature,weight=args.weight)
     else:
         raise NotImplementedError
 
