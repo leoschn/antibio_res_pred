@@ -23,10 +23,8 @@ def train(model, data_train, optimizer, loss_function, epoch):
 
     if cuda.is_available():
         device = torch.device('cuda')
-        device_type = 'cuda'
     else:
         device = torch.device('cpu')
-        device_type = 'cpu'
     losses = 0.
     acc = 0.
 
@@ -123,8 +121,8 @@ def run(args):
     if args.pretrain_path is not None :
         load_model(model,args.pretrain_path)
     #move parameters to GPU
-    if torch.cuda.is_available():
-        model = model.cuda()
+    # if torch.cuda.is_available():
+    #     model = model.cuda()
 
     if args.wandb :
         with open('wdb_key.txt', 'r') as f:

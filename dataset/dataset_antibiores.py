@@ -116,7 +116,7 @@ class Antibio_Dataset(DatasetFolder):
                 self.transform_img = transforms.Compose([transforms.ToTensor(),
                                                          transforms.Resize((256, 256)),
                                                          transforms.Normalize((1.0207), (1.0011)),
-                                                        ])#TBD
+                                                        ])
         else :
             self.transform_img = None
         self.label_col = label_col
@@ -135,6 +135,7 @@ class Antibio_Dataset(DatasetFolder):
         if self.transform_img is not None:
             sample = self.transform_img(sample)
         label_id = self.classes.index(label)
+        print(name)
         return sample, label_id, name
 
 
