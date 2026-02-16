@@ -25,6 +25,7 @@ def train(model, data_train, optimizer, loss_function, epoch):
         device = torch.device('cuda')
     else:
         device = torch.device('cpu')
+    model.to(device)
     losses = 0.
     acc = 0.
 
@@ -52,6 +53,7 @@ def test(model, data_test, loss_function, epoch):
         device = torch.device('cuda')
     else:
         device = torch.device('cpu')
+    model.to(device)
     losses = 0.
     acc = 0.
     for param in model.parameters():
@@ -75,11 +77,9 @@ def make_prediction(model, data_test):
     model.eval()
     if cuda.is_available():
         device = torch.device('cuda')
-        device_type = 'cuda'
     else:
         device = torch.device('cpu')
-        device_type = 'cpu'
-
+    model.to(device)
     for param in model.parameters():
         param.requires_grad = False
     y_true = []
