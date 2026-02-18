@@ -131,7 +131,9 @@ class Antibio_Dataset(DatasetFolder):
         sample = self.loader(path)
         if self.type == 'ms2':
             sample = sample["image"]
-            print(sample[0].shape)
+            print('before : ',sample[0].shape)
+            sample = [s[:,0:899] for s in sample] #some image are 633*901 instead of 633*900
+            print('after : ',sample[0].shape)
             sample = np.stack(sample, axis=0)
         if self.transform_img is not None:
             sample = self.transform_img(sample)
