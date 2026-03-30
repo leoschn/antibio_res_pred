@@ -90,6 +90,7 @@ class Antibio_Dataset(DatasetFolder):
     def __init__(self, root,label_path,label_col,augment=False, model_type=None):
         self.root = root
         self.instances, self.labels , self.sample_name= self.make_dataset('.pkl',label_path,label_col)
+
         self.loader = pkl_loader
         self.type = model_type
         if self.type == 'ms1':
@@ -152,7 +153,9 @@ class Antibio_Dataset(DatasetFolder):
                 m = re.match(r'([A-Z]+)-(\d+)-([A-Z]+)',  os.path.basename(file_name))
                 if m:
                     label = df_label[df_label['sample_name'] == f"{m.group(1)}{m.group(2)}"][label_col].tolist()
-                    if len(label) > 0:
+                    if label_col == 'species':
+                        label = [i.split(' ')[0]+ ' ' + i.split(' ')[0] for i in label]
+                    if len(label) > 0 :
                         instances.append(file_name)
                         labels.append(label[0])
                         sample_name.append(f"{m.group(1)}-{m.group(2)}-{m.group(3)}")
