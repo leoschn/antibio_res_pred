@@ -86,6 +86,47 @@ def pkl_loader(path):
     return sample
 
 
+class SpeciesDataset(DatasetFolder):
+    def __init__(self, root, included_species):
+
+        self.root = root
+        self.samples, self.targets , self.sample_name= self.build_dataset('.pkl',included_species)
+        self.loader = pkl_loader
+        self.classes = list(set(self.targets))
+        self.classes.sort()
+
+
+    def __getitem__(self, index: int):
+        label = self.targets[index]
+        path = self.samples[index]
+        name = self.sample_name[index]
+        sample = self.loader(path)
+        sample = sample["image"]
+        label_id = self.classes.index(label)
+        return sample, label_id, name
+
+
+    def __len__(self):
+        return len(self.samples)
+
+
+    def build_dataset(self, valid_ext, included_species):
+        instances,labels,sample_name=[],[],[]
+        file_names = glob.glob(os.path.join(self.root, '*'))
+        for file_name in file_names:
+            if file_name.endswith(valid_ext):
+                m = re.match(r'([A-Z]+)-(\d+)-([A-Z]+)',  os.path.basename(file_name))
+                if m and m.group(1) in included_species :
+                    instances.append(file_name)
+                    labels.append(m.group(1))
+                    sample_name.append(f"{m.group(1)}-{m.group(2)}-{m.group(3)}")
+                else:
+                    raise ValueError(f"Label not found for: {file_name}")
+        assert(len(instances)==len(labels))
+        print(len(instances), ' image detected. \n Dataset loading: done')
+        return instances,labels,sample_name
+
+
 class Antibio_Dataset(DatasetFolder):
     def __init__(self, root,label_path,label_col,augment=False, model_type=None):
         self.root = root

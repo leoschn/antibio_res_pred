@@ -3,10 +3,9 @@ import pandas as pd
 import torch
 from torch import nn, optim, cuda
 import wandb
-from dataset.dataset_antibiores import Antibio_Dataset
+from dataset.dataset_antibiores import Antibio_Dataset, SpeciesDataset
 from model import Classification_model_ms1, Classification_model_ms2
 import torch.utils.data
-from torch.amp import autocast
 
 def save_model(model, path):
     print('Model saved')
@@ -60,7 +59,7 @@ def test(model, data_test, loss_function, epoch):
         param.requires_grad = False
 
     for im, label, _ in data_test:
-        label = label.float().long()
+        label = label.long()
         im = im.float().to(device)
         label = label.to(device)
         pred_logits = model(im)
@@ -97,6 +96,53 @@ def make_prediction(model, data_test):
     df = pd.DataFrame({'sample name':name,'y_true':y_true,'y_pred':y_pred})
     return df
 
+def run_species(args):
+    MAJOR_SPECIES = ['ESCOOL','CITFRE','KLEPNE']
+    data_train = SpeciesDataset(root=args.dataset_train_dir,included_species=MAJOR_SPECIES)
+    data_val = SpeciesDataset(root=args.dataset_val_dir,included_species=MAJOR_SPECIES)
+    data_test = SpeciesDataset(root=args.dataset_test_dir,included_species=MAJOR_SPECIES)
+    data_loader_train = torch.utils.data.DataLoader(data_train, batch_size=args.batch_size)
+    data_loader_val = torch.utils.data.DataLoader(data_val, batch_size=args.batch_size)
+    data_loader_test = torch.utils.data.DataLoader(data_test, batch_size=args.batch_size)
+    model = Classification_model_ms2(backbone=args.backbone, n_class=2, n_window=args.n_window,
+                                     n_feature=args.n_feature, weight=args.weight)
+    if args.pretrain_path is not None :
+        load_model(model,args.pretrain_path)
+
+    if args.wandb :
+        with open('wdb_key.txt', 'r') as f:
+            key = f.readline().strip()
+        os.environ["WANDB_API_KEY"] = key
+
+        os.environ["WANDB_MODE"] = "offline"
+        wandb.init(project='species_classification')
+    #init accumulators
+    best_acc = 0
+    #init training
+    loss_function = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    #train model
+    for e in range(args.epoches):
+        loss, acc = train(model,data_loader_train,optimizer,loss_function,e)
+        if args.wandb :
+            wandb.log({'epoch':e,'loss_train':loss,'acc_train':acc})
+        if e%args.eval_inter==0 :
+            loss, acc = test(model,data_loader_val,loss_function,e)
+            if args.wandb :
+                wandb.log({'epoch':e,'loss_val':loss,'acc_val':acc})
+            if acc > best_acc :
+                save_model(model,args.save_path)
+                best_acc = acc
+    load_model(model,args.save_path)
+    loss, acc = test(model, data_loader_test, loss_function, e)
+    df = make_prediction(model, data_loader_test)
+    df.to_csv(args.out_path,index=False)
+    print('Test accuracy : {:.3f}'.format(best_acc))
+    if args.wandb :
+        wandb.log({'loss_test':loss,'acc_test':acc})
+
+    if args.wandb :
+        wandb.finish()
 
 def run(args):
     #load data

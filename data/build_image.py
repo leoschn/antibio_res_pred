@@ -3,6 +3,7 @@ import os
 import pickle
 import pickle as pkl
 import numpy as np
+import pymzml
 from matplotlib import image as mpimg
 from pyRawMSDataReader.pyRawMSDataReader.WiffFileReader_py import WiffFileReader
 
@@ -170,20 +171,16 @@ def build_dataset_ms2(dir_path):
     for filename in glob.glob(os.path.join(dir_path,'*.mzML')):
         print(filename)
 
-
         name = transform(os.path.basename(filename))
-        os.makedirs('img_ms1',exist_ok=True)
-        save_name = os.path.join('img_ms1', name+'.pkl')
-        if not os.path.exists(save_name):
-            img = build_image_ms2_mzml(filename, 1)
-            with open(save_name,'wb') as file:
-                pkl.dump(img,file)
+        os.makedirs('img_ms2',exist_ok=True)
+        save_name = os.path.join('img_ms2_', name+'.pkl')
+        _ = build_image_ms2_mzml(filename, save_name)
+
 
 
 def build_dataset_ms1(dir_path):
     for filename in glob.glob(os.path.join(dir_path,'*.wiff')):
         print(filename)
-
 
         name = transform(os.path.basename(filename))
         os.makedirs('img_ms1',exist_ok=True)
@@ -194,6 +191,6 @@ def build_dataset_ms1(dir_path):
                 pkl.dump(img,file)
 
 if __name__ == '__main__':
-    # build_dataset_ms1('wiff_data')
-    data = build_image_ms2_mzml('wiff_data/CITAMA-5-AER-d200.wiff',bin_mz=1)
+    build_dataset_ms2('/lustre/fsn1/projects/rech/bun/ucg81ws/all_data_mzml')
+
 
