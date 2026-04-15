@@ -97,7 +97,7 @@ def make_prediction(model, data_test):
     return df
 
 def run_species(args):
-    MAJOR_SPECIES = ['ESCOOL','CITFRE','KLEPNE']
+    MAJOR_SPECIES = ['ESCOOL','CITFRE','KLEPNE','ENTHOR','PRTMIR']
     data_train = SpeciesDataset(root=args.dataset_train_dir,included_species=MAJOR_SPECIES)
     data_val = SpeciesDataset(root=args.dataset_val_dir,included_species=MAJOR_SPECIES)
     data_test = SpeciesDataset(root=args.dataset_test_dir,included_species=MAJOR_SPECIES)
