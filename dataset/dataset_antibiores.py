@@ -96,6 +96,7 @@ class SpeciesDataset(DatasetFolder):
         self.classes.sort()
 
         self.transform = transforms.Compose([transforms.Resize((256, 256)),])
+        self.transform_tensor = transforms.Compose([transforms.ToTensor(),transforms.Resize((256, 256))])
 
 
     def __getitem__(self, index: int):
@@ -104,8 +105,11 @@ class SpeciesDataset(DatasetFolder):
         name = self.sample_name[index]
         sample = self.loader(path)
         sample = sample["image"]
-        if transforms:
-            sample = [self.transform(s) for s in sample]
+        if self.transform:
+            if type(sample[0])==torch.Tensor:
+                sample = [self.transform(s) for s in sample]
+            else :
+                sample = [self.transform_tensor(s) for s in sample]
         label_id = self.classes.index(label)
         return sample, label_id, name
 
