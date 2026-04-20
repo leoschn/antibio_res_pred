@@ -94,6 +94,7 @@ class SpeciesDataset(DatasetFolder):
         self.loader = pkl_loader
         self.classes = list(set(included_species))
         self.classes.sort()
+        print(self.classes)
 
         self.transform = transforms.Compose([transforms.Resize((256, 256)),])
         self.transform_tensor = transforms.Compose([transforms.ToTensor(),transforms.Resize((256, 256))])
@@ -105,14 +106,15 @@ class SpeciesDataset(DatasetFolder):
         name = self.sample_name[index]
         sample = self.loader(path)
         sample = sample["image"]
+
         if self.transform:
             if type(sample[0])==torch.Tensor:
                 sample = [self.transform(s) for s in sample]
             else :
                 sample = [self.transform_tensor(s) for s in sample]
         sample = torch.cat(sample, dim=0)
-        label_id = self.classes.index(label)
-        return sample, label_id, name
+        label = self.classes.index(label)
+        return sample, label, name
 
 
     def __len__(self):
