@@ -113,6 +113,7 @@ class SpeciesDataset(DatasetFolder):
             else :
                 sample = [self.transform_tensor(s) for s in sample]
         sample = torch.cat(sample, dim=0)
+        print(label)
         label = self.classes.index(label)
         return sample, label, name
 
