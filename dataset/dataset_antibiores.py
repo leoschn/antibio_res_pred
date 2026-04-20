@@ -104,10 +104,8 @@ class SpeciesDataset(DatasetFolder):
         name = self.sample_name[index]
         sample = self.loader(path)
         sample = sample["image"]
-        print('type : ', type(sample))
-        print('shape : ', sample.shape)
         if transforms:
-            sample = self.transform(sample)
+            sample = [self.transform(s) for s in sample]
         label_id = self.classes.index(label)
         return sample, label_id, name
 
