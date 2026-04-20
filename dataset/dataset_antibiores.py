@@ -120,8 +120,6 @@ class SpeciesDataset(DatasetFolder):
                     instances.append(file_name)
                     labels.append(m.group(1))
                     sample_name.append(f"{m.group(1)}-{m.group(2)}-{m.group(3)}")
-                else:
-                    raise ValueError(f"Label not found for: {file_name}")
         assert(len(instances)==len(labels))
         print(len(instances), ' image detected. \n Dataset loading: done')
         return instances,labels,sample_name
