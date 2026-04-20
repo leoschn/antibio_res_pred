@@ -92,7 +92,7 @@ class SpeciesDataset(DatasetFolder):
         self.root = root
         self.samples, self.targets , self.sample_name= self.build_dataset('.pkl',included_species)
         self.loader = pkl_loader
-        self.classes = list(set(self.targets))
+        self.classes = list(set(included_species))
         self.classes.sort()
 
         self.transform = transforms.Compose([transforms.Resize((256, 256)),])
