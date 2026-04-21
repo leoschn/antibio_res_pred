@@ -104,7 +104,7 @@ def run_species(args):
     data_loader_train = torch.utils.data.DataLoader(data_train, batch_size=args.batch_size)
     data_loader_val = torch.utils.data.DataLoader(data_val, batch_size=args.batch_size)
     data_loader_test = torch.utils.data.DataLoader(data_test, batch_size=args.batch_size)
-    model = Classification_model_ms2(backbone=args.backbone, n_class=2, n_window=args.n_window,
+    model = Classification_model_ms2(backbone=args.backbone, n_class=len(MAJOR_SPECIES), n_window=args.n_window,
                                      n_feature=args.n_feature, weight=args.weight)
     if args.pretrain_path is not None :
         load_model(model,args.pretrain_path)
