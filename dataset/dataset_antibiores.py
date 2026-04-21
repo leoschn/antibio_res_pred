@@ -115,6 +115,7 @@ class SpeciesDataset(DatasetFolder):
         sample = torch.cat(sample, dim=0)
         print(label)
         label = self.classes.index(label)
+        print(label)
         return sample, label, name
 
 
