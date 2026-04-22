@@ -117,7 +117,7 @@ def run_species(args):
         os.environ["WANDB_MODE"] = "offline"
         wandb.init(project='species_classification')
     #init accumulators
-    best_acc = 0
+    best_loss = 1
     #init training
     loss_function = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
@@ -130,14 +130,14 @@ def run_species(args):
             loss, acc = test(model,data_loader_val,loss_function,e)
             if args.wandb :
                 wandb.log({'epoch':e,'loss_val':loss,'acc_val':acc})
-            if acc > best_acc :
+            if loss < best_loss :
                 save_model(model,args.save_path)
                 best_acc = acc
     load_model(model,args.save_path)
     loss, acc = test(model, data_loader_test, loss_function, e)
     df = make_prediction(model, data_loader_test)
     df.to_csv(args.out_path,index=False)
-    print('Test accuracy : {:.3f}'.format(best_acc))
+    print('Test accuracy : {:.3f}'.format(acc))
     if args.wandb :
         wandb.log({'loss_test':loss,'acc_test':acc})
 
