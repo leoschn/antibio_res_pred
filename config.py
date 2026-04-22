@@ -42,7 +42,7 @@ def load_args_species():
     parser.add_argument('--pretrain_path', type=str, default=None)
     parser.add_argument('--n_window', type=int, default=100)
     parser.add_argument('--n_feature', type=int, default=4)
-    parser.add_argument('--wandb', type=str, default=None)
+    parser.add_argument('--wandb', type=str, default='species_prediction_ms2')
     parser.add_argument('--weight', type=str, default='shared')
     args = parser.parse_args()
 

@@ -115,7 +115,7 @@ def run_species(args):
         os.environ["WANDB_API_KEY"] = key
 
         os.environ["WANDB_MODE"] = "offline"
-        wandb.init(project='species_classification')
+        wandb.init(project=args.wandb)
     #init accumulators
     best_loss = 1
     #init training
