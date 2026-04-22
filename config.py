@@ -40,7 +40,7 @@ def load_args_species():
     parser.add_argument('--save_path', type=str, default='output/best_model_synt.pt')
     parser.add_argument('--out_path', type=str, default='output/output_synt.csv')
     parser.add_argument('--pretrain_path', type=str, default=None)
-    parser.add_argument('--n_window', type=int, default=101)
+    parser.add_argument('--n_window', type=int, default=100)
     parser.add_argument('--n_feature', type=int, default=4)
     parser.add_argument('--wandb', type=str, default=None)
     parser.add_argument('--weight', type=str, default='shared')

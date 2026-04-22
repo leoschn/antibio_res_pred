@@ -106,6 +106,8 @@ class SpeciesDataset(DatasetFolder):
         name = self.sample_name[index]
         sample = self.loader(path)
         sample = sample["image"]
+        if len(sample)==101 : #MS1 + 100 MS2
+            sample = sample[1:101] #only keep ms2 data
 
         if self.transform:
             if type(sample[0])==torch.Tensor:
@@ -114,6 +116,7 @@ class SpeciesDataset(DatasetFolder):
                 sample = [self.transform_tensor(s) for s in sample]
         sample = torch.cat(sample, dim=0)
         label = self.classes.index(label)
+        print(sample.shape)
         return sample, label, name
 
 
