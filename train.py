@@ -88,7 +88,7 @@ def make_prediction(model, data_test):
     y_pred = []
     name = []
     for im, label, sample in data_test:
-        label = label().long()
+        label = label.long()
         im = im.float.to(device)
         label = label.to(device)
         pred_logits = model(im)
