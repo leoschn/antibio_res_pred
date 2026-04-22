@@ -17,7 +17,7 @@ def load_model(model, path):
 
 def train(model, data_train, optimizer, loss_function, epoch):
     model.train()
-    model = model.half()
+    model = model.float()
     for param in model.parameters():
         param.requires_grad = True
 
@@ -31,7 +31,7 @@ def train(model, data_train, optimizer, loss_function, epoch):
 
     for im, label, _ in data_train:
         label = label.long()
-        im = im.half().to(device)
+        im = im.float().to(device)
         label = label.to(device)
         pred_logits = model(im)
         pred_class = torch.argmax(pred_logits,dim=1)
@@ -49,7 +49,7 @@ def train(model, data_train, optimizer, loss_function, epoch):
 
 def test(model, data_test, loss_function, epoch):
     model.eval()
-    model = model.half()
+    model = model.float()
     if cuda.is_available():
         device = torch.device('cuda')
     else:
@@ -62,7 +62,7 @@ def test(model, data_test, loss_function, epoch):
 
     for im, label, _ in data_test:
         label = label.long()
-        im = im.half().to(device)
+        im = im.float().to(device)
         label = label.to(device)
         pred_logits = model(im)
         pred_class = torch.argmax(pred_logits,dim=1)
@@ -76,7 +76,7 @@ def test(model, data_test, loss_function, epoch):
 
 def make_prediction(model, data_test):
     model.eval()
-    model=model.half()
+    model=model.float()
     if cuda.is_available():
         device = torch.device('cuda')
     else:
@@ -89,7 +89,7 @@ def make_prediction(model, data_test):
     name = []
     for im, label, sample in data_test:
         label = label().long()
-        im = im.half.to(device)
+        im = im.float.to(device)
         label = label.to(device)
         pred_logits = model(im)
         pred_class = torch.argmax(pred_logits,dim=1)
