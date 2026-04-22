@@ -34,7 +34,7 @@ def load_args_species():
     parser.add_argument('--lr', type=float, default=0.001)
     parser.add_argument('--batch_size', type=int, default=64)
     parser.add_argument('--backbone', type=str, default='ResNet18')
-    parser.add_argument('--dataset_train_dir', type=str, default='/lustre/fswork/projects/rech/bun/ucg81ws/these/ms_diffusion/sampled_full_reconstructed')
+    parser.add_argument('--dataset_train_dir', type=str, default='/lustre/fsn1/projects/rech/bun/ucg81ws/ms2_split_img/train')
     parser.add_argument('--dataset_val_dir', type=str, default='/lustre/fsn1/projects/rech/bun/ucg81ws/ms2_split_img/val')
     parser.add_argument('--dataset_test_dir', type=str, default='/lustre/fswork/projects/rech/bun/ucg81ws/these/ms_diffusion/sampled_full_reconstructed')
     parser.add_argument('--save_path', type=str, default='output/best_model_synt.pt')
