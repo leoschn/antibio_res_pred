@@ -131,8 +131,8 @@ def run_species(args):
             if args.wandb :
                 wandb.log({'epoch':e,'loss_val':loss,'acc_val':acc})
             if loss < best_loss :
+                best_loss = loss
                 save_model(model,args.save_path)
-                best_acc = acc
     load_model(model,args.save_path)
     loss, acc = test(model, data_loader_test, loss_function, e)
     df = make_prediction(model, data_loader_test)
