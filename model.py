@@ -286,7 +286,7 @@ class Classification_model_ms2(nn.Module):
         if backbone =='ResNet18' and self.weight =='shared':
             self.feature_extractor = resnet18(self.n_feature, in_channels=1)
         elif backbone =='ResNet18' and self.weight =='multiple':
-            self.feature_extractor = [resnet18(self.n_feature, in_channels=1) for _ in range(self.n_window)]
+            self.feature_extractor = nn.ModuleList([resnet18(self.n_feature, in_channels=1) for _ in range(self.n_window)])
         self.classifier = nn.Linear(in_features=self.n_feature*self.n_window, out_features=self.n_class)
 
 
