@@ -28,7 +28,7 @@ img_is_major = np.array([is_major_species(f_name,MAJOR_SPECIES) for f_name in im
 
 path_major_img_array = img_base_name_array[img_is_major]
 
-ind_major_array = np.linspace(0,len(path_major_img_array),len(path_major_img_array))
+ind_major_array = np.linspace(0,len(path_major_img_array),len(path_major_img_array),dtype=int)
 
 np.random.shuffle(ind_major_array)
 
@@ -41,7 +41,7 @@ idx_E = len(path_major_img_array)
 
 path_minor_img_array = img_base_name_array[~img_is_major]
 
-ind_minor_array = np.linspace(0,len(path_minor_img_array),len(path_minor_img_array))
+ind_minor_array = np.linspace(0,len(path_minor_img_array),len(path_minor_img_array),dtype=int)
 
 np.random.shuffle(ind_minor_array)
 

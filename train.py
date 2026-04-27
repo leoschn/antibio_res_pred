@@ -3,7 +3,7 @@ import pandas as pd
 import torch
 from torch import nn, optim, cuda
 import wandb
-from dataset.dataset_antibiores import Antibio_Dataset, SpeciesDataset
+from dataset.dataset_antibiores import SpeciesDataset
 from model import Classification_model_ms1, Classification_model_ms2
 import torch.utils.data
 
@@ -100,14 +100,13 @@ def make_prediction(model, data_test):
     return df
 
 def run_species(args):
-    MAJOR_SPECIES = ['ESCCOL','CITFRE','KLEPNE','ENTHOR','PRTMIR','KLEOXY']
-    data_train = SpeciesDataset(root=args.dataset_train_dir,included_species=MAJOR_SPECIES)
-    data_val = SpeciesDataset(root=args.dataset_val_dir,included_species=MAJOR_SPECIES)
-    data_test = SpeciesDataset(root=args.dataset_test_dir,included_species=MAJOR_SPECIES)
+    data_train = SpeciesDataset(root=args.dataset_train_dir,origin=args.origin_train)
+    data_val = SpeciesDataset(root=args.dataset_val_dir,origin=args.origin_val)
+    data_test = SpeciesDataset(root=args.dataset_test_dir,origin=args.origin_test)
     data_loader_train = torch.utils.data.DataLoader(data_train, batch_size=args.batch_size)
     data_loader_val = torch.utils.data.DataLoader(data_val, batch_size=args.batch_size)
     data_loader_test = torch.utils.data.DataLoader(data_test, batch_size=args.batch_size)
-    model = Classification_model_ms2(backbone=args.backbone, n_class=len(MAJOR_SPECIES), n_window=args.n_window,
+    model = Classification_model_ms2(backbone=args.backbone, n_class=5, n_window=args.n_window,
                                      n_feature=args.n_feature, weight=args.weight)
     if args.pretrain_path is not None :
         load_model(model,args.pretrain_path)
@@ -141,67 +140,6 @@ def run_species(args):
     df = make_prediction(model, data_loader_test)
     df.to_csv(args.out_path,index=False)
     print('Test accuracy : {:.3f}'.format(acc))
-    if args.wandb :
-        wandb.log({'loss_test':loss,'acc_test':acc})
-
-    if args.wandb :
-        wandb.finish()
-
-def run(args):
-    #load data
-
-    data_train = Antibio_Dataset(root=args.dataset_train_dir,label_path=args.label_path,label_col=args.label_col,augment=False, model_type=args.model_type)
-    data_val = Antibio_Dataset(root=args.dataset_val_dir,label_path=args.label_path,label_col=args.label_col, model_type=args.model_type)
-    data_test = Antibio_Dataset(root=args.dataset_test_dir,label_path=args.label_path,label_col=args.label_col, model_type=args.model_type)
-
-    data_loader_train = torch.utils.data.DataLoader(data_train, batch_size=args.batch_size)
-    data_loader_val = torch.utils.data.DataLoader(data_val, batch_size=args.batch_size)
-    data_loader_test =  torch.utils.data.DataLoader(data_test, batch_size=args.batch_size)
-
-    #load model
-    if args.model_type == 'ms1':
-        model = Classification_model_ms1(backbone = args.backbone, n_class=2)
-    elif args.model_type == 'ms2':
-        model = Classification_model_ms2(backbone = args.backbone, n_class=2, n_window=args.n_window,n_feature=args.n_feature,weight=args.weight)
-    else:
-        raise NotImplementedError
-
-    #load weight
-    if args.pretrain_path is not None :
-        load_model(model,args.pretrain_path)
-    #move parameters to GPU
-    # if torch.cuda.is_available():
-    #     model = model.cuda()
-
-    if args.wandb :
-        with open('wdb_key.txt', 'r') as f:
-            key = f.readline().strip()
-        os.environ["WANDB_API_KEY"] = key
-
-        os.environ["WANDB_MODE"] = "offline"
-        wandb.init(project='antibio_classification')
-    #init accumulators
-    best_acc = 0
-    #init training
-    loss_function = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
-    #train model
-    for e in range(args.epoches):
-        loss, acc = train(model,data_loader_train,optimizer,loss_function,e)
-        if args.wandb :
-            wandb.log({'epoch':e,'loss_train':loss,'acc_train':acc})
-        if e%args.eval_inter==0 :
-            loss, acc = test(model,data_loader_val,loss_function,e)
-            if args.wandb :
-                wandb.log({'epoch':e,'loss_val':loss,'acc_val':acc})
-            if acc > best_acc :
-                save_model(model,args.save_path)
-                best_acc = acc
-    load_model(model,args.save_path)
-    loss, acc = test(model, data_loader_test, loss_function, e)
-    df = make_prediction(model, data_loader_test)
-    df.to_csv(args.out_path,index=False)
-    print('Test accuracy : {:.3f}'.format(best_acc))
     if args.wandb :
         wandb.log({'loss_test':loss,'acc_test':acc})
 
