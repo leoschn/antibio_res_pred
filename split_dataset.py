@@ -62,32 +62,32 @@ print('Split E : ', len(path_array_E), 'images')
 
 #COPY IMG
 for base_name in path_array_A:
-    shutil.copy(os.path.join(DIR_IMG,base_name),os.path.join(OUT_DIR_IMG,'split_A',base_name,'.pkl'))
+    shutil.copy(os.path.join(DIR_IMG,base_name,'.pkl'),os.path.join(OUT_DIR_IMG,'split_A',base_name,'.pkl'))
 for base_name in path_array_B:
-    shutil.copy(os.path.join(DIR_IMG,base_name),os.path.join(OUT_DIR_IMG,'split_B',base_name,'.pkl'))
+    shutil.copy(os.path.join(DIR_IMG,base_name,'.pkl'),os.path.join(OUT_DIR_IMG,'split_B',base_name,'.pkl'))
 for base_name in path_array_E:
-    shutil.copy(os.path.join(DIR_IMG,base_name),os.path.join(OUT_DIR_IMG,'split_E',base_name,'.pkl'))
+    shutil.copy(os.path.join(DIR_IMG,base_name,'.pkl'),os.path.join(OUT_DIR_IMG,'split_E',base_name,'.pkl'))
 
 #COPY PAIRS
 
 for base_name in path_array_C:
     for i in range(100):
         try:
-            shutil.copy(os.path.join(DIR_PAIRS, base_name),
+            shutil.copy(os.path.join(DIR_PAIRS, base_name,'.pkl'),
                         os.path.join(OUT_DIR_PAIRS, 'split_C', base_name, f'_ms2_{i}.pkl'))
         except:
             pass
 for base_name in path_array_D:
     for i in range(100):
         try:
-            shutil.copy(os.path.join(DIR_PAIRS, base_name),
+            shutil.copy(os.path.join(DIR_PAIRS, base_name,'.pkl'),
                         os.path.join(OUT_DIR_PAIRS, 'split_D', base_name, f'_ms2_{i}.pkl'))
         except:
             pass
 for base_name in path_array_E:
     for i in range(100):
         try:
-            shutil.copy(os.path.join(DIR_PAIRS, base_name),
+            shutil.copy(os.path.join(DIR_PAIRS, base_name,'.pkl'),
                         os.path.join(OUT_DIR_PAIRS, 'split_E', base_name, f'_ms2_{i}.pkl'))
         except:
             pass
