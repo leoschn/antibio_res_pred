@@ -13,7 +13,7 @@ MAJOR_SPECIES = ['CITFRE','ESCCOL','KLEPNE','ENTHOR','PRTMIR']
 
 img_f_name_list = glob.glob(os.path.join(DIR_IMG,'*.pkl'))
 
-img_base_name_list = [f_name.base_name.split('.')[0] for f_name in img_f_name_list]
+img_base_name_list = [os.path.basename(f_name).split('.')[0] for f_name in img_f_name_list]
 img_base_name_array = np.array(img_base_name_list)
 
 
