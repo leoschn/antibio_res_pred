@@ -48,11 +48,11 @@ np.random.shuffle(ind_minor_array)
 idx_C_minor = int(len(path_minor_img_array)*0.8)
 idx_D_minor = len(path_minor_img_array)
 
-path_array_A = path_major_img_array[idx_A]
-path_array_B = path_major_img_array[idx_B]
-path_array_C = np.concat([path_major_img_array[idx_C],path_minor_img_array[idx_C_minor]], axis=0)
-path_array_D = np.concat([path_major_img_array[idx_D],path_minor_img_array[idx_D_minor]], axis=0)
-path_array_E = path_major_img_array[idx_E]
+path_array_A = path_major_img_array[ind_major_array[:idx_A]]
+path_array_B = path_major_img_array[ind_major_array[idx_A:idx_B]]
+path_array_C = np.concat([path_major_img_array[ind_major_array[idx_B:idx_C]],path_minor_img_array[ind_minor_array[:idx_C_minor]]], axis=0)
+path_array_D = np.concat([path_major_img_array[ind_major_array[idx_C:idx_D]],path_minor_img_array[ind_minor_array[idx_C_minor:idx_D_minor]]], axis=0)
+path_array_E = path_major_img_array[ind_major_array[idx_D:idx_E]]
 
 print('Split A : ', len(path_array_A), 'images')
 print('Split B : ', len(path_array_B), 'images')
@@ -65,8 +65,6 @@ for base_name in path_array_A:
     shutil.copy(os.path.join(DIR_IMG,base_name),os.path.join(OUT_DIR_IMG,'split_A',base_name,'.pkl'))
 for base_name in path_array_B:
     shutil.copy(os.path.join(DIR_IMG,base_name),os.path.join(OUT_DIR_IMG,'split_B',base_name,'.pkl'))
-
-
 for base_name in path_array_E:
     shutil.copy(os.path.join(DIR_IMG,base_name),os.path.join(OUT_DIR_IMG,'split_E',base_name,'.pkl'))
 
