@@ -73,21 +73,21 @@ for base_name in path_array_E:
 for base_name in path_array_C:
     for i in range(100):
         try:
-            shutil.copy(os.path.join(DIR_PAIRS, base_name+'.pkl'),
+            shutil.copy(os.path.join(DIR_PAIRS, base_name+ f'_ms2_{i}.pkl'),
                         os.path.join(OUT_DIR_PAIRS, 'split_C', base_name+ f'_ms2_{i}.pkl'))
         except:
             pass
 for base_name in path_array_D:
     for i in range(100):
         try:
-            shutil.copy(os.path.join(DIR_PAIRS, base_name+'.pkl'),
+            shutil.copy(os.path.join(DIR_PAIRS, base_name+ f'_ms2_{i}.pkl'),
                         os.path.join(OUT_DIR_PAIRS, 'split_D', base_name+ f'_ms2_{i}.pkl'))
         except:
             pass
 for base_name in path_array_E:
     for i in range(100):
         try:
-            shutil.copy(os.path.join(DIR_PAIRS, base_name+'.pkl'),
+            shutil.copy(os.path.join(DIR_PAIRS, base_name+ f'_ms2_{i}.pkl'),
                         os.path.join(OUT_DIR_PAIRS, 'split_E', base_name+ f'_ms2_{i}.pkl'))
         except:
             pass
