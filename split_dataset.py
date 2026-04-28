@@ -21,8 +21,8 @@ def is_major_species(name,species):
     for spe in species:
         if spe in name:
             return True
-        else:
-            return False
+
+    return False
 
 img_is_major = np.array([is_major_species(f_name,MAJOR_SPECIES) for f_name in img_base_name_list])
 
