@@ -13,6 +13,18 @@ def pkl_loader(path):
         sample = pkl.load(f)
     return sample
 
+def reconstruct_synth(input_dir, output_dir,valid_ext,epoch):  # one file per window
+    file_names = glob.glob(os.path.join(input_dir, '*'))
+    sample_names = [''.join(file_name.split('_')[::-2]) for file_name in file_names]
+
+    for sample_name in sample_names:
+        if sample_name.endswith(valid_ext):
+            m = re.match(r'([A-Z]+)-(\d+)-([A-Z]+)', os.path.basename(sample_name))
+            if m and m.group(1):
+                list_wind_img = [sample_name+f'_{i}_{epoch}.pkl' for i in range(1,100)]
+                sample = {'image': [pkl_loader(path) for path in list_wind_img]}
+                pkl.dump(sample, open(os.path.join(output_dir, sample_name+'_reconstructed.pkl'), 'wb'))
+
 class CropTransform:
     def __init__(self, top: int, left: int, height: int, width: int):
         self.top = top
@@ -38,15 +50,15 @@ class SpeciesDataset(DatasetFolder):
         self.classes = list(set(self.targets))
         self.classes.sort()
         self.origin = origin
-        if origin == 'real' :
+        if self.origin == 'real' :
             self.transform_img = transforms.Compose([
                                                  CropTransform(top=90, left=0, height=422, width=1024),
                                                  transforms.ToTensor(),
                                                  transforms.Resize(im_size),
                                                  transforms.Normalize((3.04),(3.04)), #same as the transform used in diffusion
             ])
-        elif origin == 'synth' :
-            self.transform_img = None
+        elif self.origin == 'synth' :
+            self.transform_img = transforms.Compose([])
         else :
             raise NotImplementedError
 
@@ -74,7 +86,7 @@ class SpeciesDataset(DatasetFolder):
         return len(self.samples)
 
 
-    def build_dataset(self, valid_ext):
+    def build_dataset(self, valid_ext): #already grouped together
         instances,labels,sample_name=[],[],[]
         file_names = glob.glob(os.path.join(self.root, '*'))
         for file_name in file_names:
