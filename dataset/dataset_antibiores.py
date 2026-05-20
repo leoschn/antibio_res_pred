@@ -18,9 +18,11 @@ def reconstruct_synth(input_dir, output_dir,valid_ext,epoch):  # one file per wi
     sample_names = [os.path.join(os.path.dirname(file_name),'_'.join(os.path.basename(file_name).removesuffix('.pkl').split('_')[:-2])) for file_name in file_names]
     sample_names = list(set(sample_names))
     print(sample_names)
+    os.makedirs(output_dir, exist_ok=True)
     for sample_name in sample_names:
         if sample_name.endswith(valid_ext):
             m = re.match(r'([A-Z]+)-(\d+)-([A-Z]+)', os.path.basename(sample_name))
+            print(sample_name)
             if m and m.group(1):
                 list_wind_img = [sample_name+f'_{i}_{epoch}.pkl' for i in range(100)]
                 sample = {'image': [pkl_loader(path) for path in list_wind_img]}
