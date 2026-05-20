@@ -24,8 +24,11 @@ def reconstruct_synth(input_dir, output_dir,valid_ext,epoch):  # one file per wi
             m = re.match(r'([A-Z]+)-(\d+)-([A-Z]+)', os.path.basename(sample_name))
             print(sample_name)
             if m and m.group(1):
-                list_wind_img = [sample_name+f'_{i}_{epoch}.pkl' for i in range(100)]
-                sample = {'image': [pkl_loader(path) for path in list_wind_img]}
+                list_img=[]
+                print('Processing')
+                for i in range(100):
+                    list_img.append(pkl_loader(sample_name+f'_{i}_{epoch}.pkl'))
+                sample = {'image': list_img}
                 pkl.dump(sample, open(os.path.join(output_dir, sample_name+'_reconstructed.pkl'), 'wb'))
 
 class CropTransform:
