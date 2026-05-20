@@ -15,7 +15,8 @@ def pkl_loader(path):
 
 def reconstruct_synth(input_dir, output_dir,valid_ext,epoch):  # one file per window
     file_names = glob.glob(os.path.join(input_dir, '*'))
-    sample_names = [''.join(file_name.split('_')[:-2]) for file_name in file_names]
+    sample_names = [os.path.join(os.path.dirname(file_name),'_'.join(os.path.basename(file_name).removesuffix('.pkl').split('_')[:-2])) for file_name in file_names]
+    sample_names = list(set(sample_names))
     print(sample_names)
     for sample_name in sample_names:
         if sample_name.endswith(valid_ext):
