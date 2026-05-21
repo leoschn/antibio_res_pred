@@ -263,6 +263,18 @@ def resnet152(num_classes=1000,**kwargs):
     return _resnet(Bottleneck, [3, 8, 36, 3],num_classes=num_classes,
                    **kwargs)
 
+
+def append_dropout(model, rate=0.2):
+    for name, module in model.named_children():
+        if len(list(module.children())) > 0:
+            append_dropout(module)
+        if isinstance(module, nn.ReLU):
+            new = nn.Sequential(module, nn.Dropout2d(p=rate, inplace=True))
+            setattr(model, name, new)
+
+
+
+
 class Classification_model_ms1(nn.Module):
 
     def __init__(self, backbone, n_class, *args, **kwargs):
@@ -277,7 +289,7 @@ class Classification_model_ms1(nn.Module):
 
 class Classification_model_ms2(nn.Module):
 
-    def __init__(self, backbone, n_class,n_window,n_feature,weight, *args, **kwargs):
+    def __init__(self, backbone, n_class,n_window,n_feature,weight,dropout_rate, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.n_class = n_class
         self.n_feature = n_feature
@@ -285,8 +297,13 @@ class Classification_model_ms2(nn.Module):
         self.weight = weight
         if backbone =='ResNet18' and self.weight =='shared':
             self.feature_extractor = resnet18(self.n_feature, in_channels=1)
+            if dropout_rate > 0:
+                append_dropout(self.feature_extractor, rate=dropout_rate)
         elif backbone =='ResNet18' and self.weight =='multiple':
             self.feature_extractor = nn.ModuleList([resnet18(self.n_feature, in_channels=1) for _ in range(self.n_window)])
+            if dropout_rate > 0:
+                for module in self.feature_extractor:
+                    append_dropout(module, rate=dropout_rate)
         self.classifier = nn.Linear(in_features=self.n_feature*self.n_window, out_features=self.n_class)
 
 
