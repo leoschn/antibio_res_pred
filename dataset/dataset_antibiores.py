@@ -25,13 +25,9 @@ def reconstruct_synth(input_dir, output_dir,valid_ext,epoch):  # one file per wi
             print('Processing ', base_name + f'_X_{epoch}.pkl')
             for i in range(100):
                 wind = pkl_loader(base_name+f'_{i}_{epoch}.pkl')
-                print(type(wind))
                 list_img.append(wind)
-                print(len(list_img))
             sample = {'image': list_img}
-            print('Saving to ',os.path.join(output_dir, base_name+'_reconstructed.pkl'))
             pkl.dump(sample, open(os.path.join(output_dir, base_name+'_reconstructed.pkl'), 'wb'))
-        break
 
 class CropTransform:
     def __init__(self, top: int, left: int, height: int, width: int):
