@@ -78,7 +78,7 @@ class SpeciesDataset(DatasetFolder):
             assert len(sample)==101
             sample = sample[1:101] #only keep ms2 data
         else :
-            assert len(sample==100)
+            assert len(sample)==100
 
         if self.transform_img:
                 sample = [self.transform_img(s) for s in sample]
