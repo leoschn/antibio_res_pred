@@ -14,7 +14,7 @@ def pkl_loader(path):
     return sample
 
 def reconstruct_synth(input_dir, output_dir,valid_ext,epoch):  # one file per window
-    sample_names = glob.glob(os.path.join(input_dir, '*'))
+    sample_names = glob.glob(os.path.join(input_dir, '*.pkl'))
     sample_names = list(set(sample_names))
     print(sample_names)
     os.makedirs(output_dir, exist_ok=True)
@@ -22,11 +22,12 @@ def reconstruct_synth(input_dir, output_dir,valid_ext,epoch):  # one file per wi
         if sample_name.endswith(valid_ext):
             base_name = os.path.join(os.path.dirname(sample_name),'_'.join(os.path.basename(sample_name).removesuffix('.pkl').split('_')[:-2]))
             list_img=[]
-            print('Processing ',os.path.join(output_dir, base_name+'_reconstructed.pkl'))
             for i in range(100):
+                print('Processing ', base_name + f'_{i}_{epoch}.pkl')
                 list_img.append(pkl_loader(base_name+f'_{i}_{epoch}.pkl'))
             sample = {'image': list_img}
             pkl.dump(sample, open(os.path.join(output_dir, base_name+'_reconstructed.pkl'), 'wb'))
+        break
 
 class CropTransform:
     def __init__(self, top: int, left: int, height: int, width: int):
