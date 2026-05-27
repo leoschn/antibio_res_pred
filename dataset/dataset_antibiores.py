@@ -22,7 +22,7 @@ def reconstruct_synth(input_dir, output_dir,valid_ext,epoch):  # one file per wi
         if sample_name.endswith(valid_ext):
             base_name = os.path.join(os.path.dirname(sample_name),'_'.join(os.path.basename(sample_name).removesuffix('.pkl').split('_')[:-2]))
             list_img=[]
-            print('Processing')
+            print('Processing ',os.path.join(output_dir, base_name+'_reconstructed.pkl'))
             for i in range(100):
                 list_img.append(pkl_loader(base_name+f'_{i}_{epoch}.pkl'))
             sample = {'image': list_img}
