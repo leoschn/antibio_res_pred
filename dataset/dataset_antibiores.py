@@ -63,7 +63,7 @@ class SpeciesDataset(DatasetFolder):
                                                  transforms.Normalize((3.04),(3.04)), #same as the transform used in diffusion
             ])
         elif self.origin == 'synth' :
-            self.transform_img = transforms.Compose([])
+            self.transform_img = transforms.Compose([transforms.ToTensor(),])
         else :
             raise NotImplementedError
 
