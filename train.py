@@ -1,4 +1,6 @@
 import os
+
+import numpy as np
 import pandas as pd
 import torch
 from torch import nn, optim, cuda
@@ -119,7 +121,7 @@ def run_species(args):
         os.environ["WANDB_MODE"] = "offline"
         wandb.init(project=args.wandb)
     #init accumulators
-    best_loss = 1
+    best_loss = np.inf
     #init training
     loss_function = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
