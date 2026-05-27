@@ -15,20 +15,20 @@ def pkl_loader(path):
 
 def reconstruct_synth(input_dir, output_dir,valid_ext,epoch):  # one file per window
     sample_names = glob.glob(os.path.join(input_dir, '*.pkl'))
-    sample_names = list(set(sample_names))
-    print(sample_names)
+    base_names = [os.path.join(os.path.dirname(sample_name),''.join(os.path.basename(sample_name).removesuffix('.pkl').split('ms2')[0])) for sample_name in sample_names]
+    base_names = list(set(base_names))
+    print(base_names)
+    print(len(base_names))
     os.makedirs(output_dir, exist_ok=True)
-    for sample_name in sample_names:
-        if sample_name.endswith(valid_ext):
-            base_name = os.path.join(os.path.dirname(sample_name),''.join(os.path.basename(sample_name).removesuffix('.pkl').split('ms2')[0]))
-            list_img=[]
-            print('Processing ', base_name + f'ms2_X_{epoch}.pkl')
-            for i in range(100):
-                wind = pkl_loader(base_name+f'ms2_{i}_{epoch}.pkl')
-                list_img.append(wind)
-            sample = {'image': list_img}
-            print('saving ',os.path.join(output_dir, os.path.basename(base_name)+'reconstructed.pkl'))
-            pkl.dump(sample, open(os.path.join(output_dir, os.path.basename(base_name)+'reconstructed.pkl'), 'wb'))
+    for base_name in base_names:
+        list_img=[]
+        print('Processing ', base_name + f'ms2_X_{epoch}.pkl')
+        for i in range(100):
+            wind = pkl_loader(base_name+f'ms2_{i}_{epoch}.pkl')
+            list_img.append(wind)
+        sample = {'image': list_img}
+        print('saving ',os.path.join(output_dir, os.path.basename(base_name)+'reconstructed.pkl'))
+        pkl.dump(sample, open(os.path.join(output_dir, os.path.basename(base_name)+'reconstructed.pkl'), 'wb'))
 
 class CropTransform:
     def __init__(self, top: int, left: int, height: int, width: int):
