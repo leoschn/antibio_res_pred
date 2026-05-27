@@ -29,6 +29,7 @@ def reconstruct_synth(input_dir, output_dir,valid_ext,epoch):  # one file per wi
                 list_img.append(wind)
                 print(len(list_img))
             sample = {'image': list_img}
+            print('Saving to ',os.path.join(output_dir, base_name+'_reconstructed.pkl'))
             pkl.dump(sample, open(os.path.join(output_dir, base_name+'_reconstructed.pkl'), 'wb'))
         break
 
