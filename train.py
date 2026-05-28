@@ -1,5 +1,5 @@
 import os
-
+from torch.utils.data import ConcatDataset
 import numpy as np
 import pandas as pd
 import torch
@@ -103,6 +103,10 @@ def make_prediction(model, data_test):
 
 def run_species(args):
     data_train = SpeciesDataset(root=args.dataset_train_dir,origin=args.origin_train)
+    if args.dataset_optional_train_dir is not None :
+        data_optional_train=SpeciesDataset(root=args.dataset_optional_train_dir,origin=args.origin_optional_train)
+        data_train = ConcatDataset([data_train, data_optional_train])
+
     data_val = SpeciesDataset(root=args.dataset_val_dir,origin=args.origin_val)
     data_test = SpeciesDataset(root=args.dataset_test_dir,origin=args.origin_test)
     data_loader_train = torch.utils.data.DataLoader(data_train, batch_size=args.batch_size)
