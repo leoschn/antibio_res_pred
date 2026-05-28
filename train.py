@@ -109,7 +109,7 @@ def run_species(args):
 
     data_val = SpeciesDataset(root=args.dataset_val_dir,origin=args.origin_val)
     data_test = SpeciesDataset(root=args.dataset_test_dir,origin=args.origin_test)
-    data_loader_train = torch.utils.data.DataLoader(data_train, batch_size=args.batch_size)
+    data_loader_train = torch.utils.data.DataLoader(data_train, batch_size=args.batch_size, shuffle=True)
     data_loader_val = torch.utils.data.DataLoader(data_val, batch_size=args.batch_size)
     data_loader_test = torch.utils.data.DataLoader(data_test, batch_size=args.batch_size)
     model = Classification_model_ms2(backbone=args.backbone, n_class=5, n_window=args.n_window,
